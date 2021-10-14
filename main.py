@@ -12,10 +12,10 @@ class Class:
     def __init__(self, name):
         self.name = name
 
-    def calculate(self):
+    def calculate(self,lengthOfTheData):
         self.calculateMean()
         self.calculateStd()
-        self.calculatePrior()
+        self.calculatePrior(lengthOfTheData)
 
     def calculatePrior(self, lengthOfTheData):
         self.priors = len(self.ages) / lengthOfTheData
@@ -33,26 +33,49 @@ class Class:
         self.std = math.sqrt(sumOfValues / 3)
 
     def calculateLikelihhod(self, value):
-        powerSide = math.pow(math.e, (-1/2) * math.pow(((value- self.mean))/self.std), 2)
+        powerSide = math.pow(math.e, (-1/2) * math.pow(((value- self.mean))/self.std,2))
         return (-1)/(self.std * math.sqrt(2*math.pi)) * powerSide
-
 
 class1 = Class("1")
 class2 = Class("2")
 class3 = Class("3")
+
+lineCount = 0;
 
 with open('training.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     isHeader = True
     for row in csv_reader:
         if isHeader:
-            print(f' Age : \t{row[0]} ; Class : {row[1]}')
             isHeader = False
             continue
-
+        lineCount+=1
         if row[1] == class1.name:
             class1.ages.append(row[0])
         elif row[1] == class2.name:
             class2.ages.append(row[0])
         elif row[1] == class3.name:
             class3.ages.append(row[0])
+
+class1.calculate(lineCount)
+class2.calculate(lineCount)
+class3.calculate(lineCount)
+
+
+approx = 26
+
+likelihood1 = class1.calculateLikelihhod(approx)
+likelihood2 = class2.calculateLikelihhod(approx)
+likelihood3 = class3.calculateLikelihhod(approx)
+
+result1 = (likelihood1 * class1.priors) / ((likelihood1 * class1.priors) + (likelihood2 * class2.priors) + (likelihood3 * class3.priors))
+result2 = (likelihood2 * class2.priors) / ((likelihood1 * class1.priors) + (likelihood2 * class2.priors) + (likelihood3 * class3.priors))
+result3 = (likelihood3 * class3.priors) / ((likelihood1 * class1.priors) + (likelihood2 * class2.priors) + (likelihood3 * class3.priors))
+
+
+print(result1)
+print(result2)
+print(result3)
+
+
+
