@@ -2,7 +2,6 @@ import csv
 import math
 import matplotlib.pyplot as plt
 
-
 class Class:
     def __init__(self, name):
         self.name = name
@@ -35,20 +34,14 @@ class Class:
         powerSide = math.exp((-1/2) * math.pow(((value- self.mean))/self.std,2))
         return (1 / (self.std * math.sqrt(2 * math.pi))) * powerSide
 
-def createConfusionMatrice(class1,class2,class3):
-    trainingMatrix = [
+def createConfusionMatrice(filename,class1,class2,class3):
+    matrix = [
         [0, 0, 0],
         [0, 0, 0],
         [0, 0, 0]
     ]
 
-    testingMatrix = [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-    ]
-
-    with open("training.csv") as csv_file:
+    with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         isHeader = True
         for row in csv_reader:
@@ -69,27 +62,37 @@ def createConfusionMatrice(class1,class2,class3):
 
             if (maximumResult == resultOfClass1):
                 if (row[1] == "1"):
-                    trainingMatrix[0][0] += 1
+                    matrix[0][0] += 1
                 elif (row[1] == "2"):
-                    trainingMatrix[1][0] += 1
+                    matrix[1][0] += 1
                 elif (row[1] == "3"):
-                    trainingMatrix[2][0] += 1
+                    matrix[2][0] += 1
             elif (maximumResult == resultOfClass2):
                 if (row[1] == "1"):
-                    trainingMatrix[0][1] += 1
+                    matrix[0][1] += 1
                 elif (row[1] == "2"):
-                    trainingMatrix[1][1] += 1
+                    matrix[1][1] += 1
                 elif (row[1] == "3"):
-                    trainingMatrix[2][1] += 1
+                    matrix[2][1] += 1
             elif (maximumResult == resultOfClass3):
                 if (row[1] == "1"):
-                    trainingMatrix[0][2] += 1
+                    matrix[0][2] += 1
                 elif (row[1] == "2"):
-                    trainingMatrix[1][2] += 1
+                    matrix[1][2] += 1
                 elif (row[1] == "3"):
-                    trainingMatrix[2][2] += 1
+                    matrix[2][2] += 1
 
-    with open("testing.csv") as csv_file:
+        print("The matrix for your data -> ", matrix)
+
+def createRiskMatrice(filename,class1,class2,class3):
+    matrix = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+    ]
+
+    with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         isHeader = True
         for row in csv_reader:
@@ -106,33 +109,36 @@ def createConfusionMatrice(class1,class2,class3):
             resultOfClass3 = ((likelihood3 * class3.priors) / (
                     (likelihood1 * class1.priors) + (likelihood2 * class2.priors) + (likelihood3 * class3.priors)))
 
-            maximumResult = max(resultOfClass1, resultOfClass2, resultOfClass3)
-
-            if (maximumResult == resultOfClass1):
-                if (row[1] == "1"):
-                    testingMatrix[0][0] += 1
-                elif (row[1] == "2"):
-                    testingMatrix[1][0] += 1
+            if(resultOfClass1 > 0.75):
+                if(row[1] == "1"):
+                    matrix[0][0] += 1
+                elif(row[1] == "2"):
+                    matrix[0][1] += 1
                 elif (row[1] == "3"):
-                    testingMatrix[2][0] += 1
-            elif (maximumResult == resultOfClass2):
-                if (row[1] == "1"):
-                    testingMatrix[0][1] += 1
-                elif (row[1] == "2"):
-                    testingMatrix[1][1] += 1
+                    matrix[0][2] += 1
+            elif(resultOfClass2 > 0.75):
+                if(row[1] == "1"):
+                    matrix[1][0] += 1
+                elif(row[1] == "2"):
+                    matrix[1][1] += 1
                 elif (row[1] == "3"):
-                    testingMatrix[2][1] += 1
-            elif (maximumResult == resultOfClass3):
-                if (row[1] == "1"):
-                    testingMatrix[0][2] += 1
-                elif (row[1] == "2"):
-                    testingMatrix[1][2] += 1
+                    matrix[1][2] += 1
+            elif(resultOfClass3 > 0.75):
+                if(row[1] == "1"):
+                    matrix[2][0] += 1
+                elif(row[1] == "2"):
+                    matrix[2][1] += 1
                 elif (row[1] == "3"):
-                    testingMatrix[2][2] += 1
+                    matrix[2][2] += 1
+            else:
+                if (row[1] == "1"):
+                    matrix[3][0] += 1
+                elif (row[1] == "2"):
+                    matrix[3][1] += 1
+                elif (row[1] == "3"):
+                    matrix[3][2] += 1
 
-        print("Matrix for training.csv -> ", trainingMatrix)
-        print("Matrix for testing.csv -> ", testingMatrix)
-
+    print("The matrix for your data -> ", matrix)
 
 def createGraph(filename):
     class1 = Class("1")
@@ -167,7 +173,8 @@ def createGraph(filename):
     class2.calculateProps(lineCount)
     class3.calculateProps(lineCount)
 
-    #createConfusionMatrice(class1,class2,class3)
+    #createConfusionMatrice(filename,class1,class2,class3)
+    #createRiskMatrice(filename,class1,class2,class3)
 
     for var in ages:
         likelihood1 = class1.calculateLikelihhod(var)
