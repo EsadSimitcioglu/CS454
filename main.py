@@ -21,13 +21,13 @@ class Class:
     def calculateMean(self):
         sumOfAges = 0
         for element in self.ages:
-            sumOfAges += int(element)
+            sumOfAges += element
         self.mean = sumOfAges / len(self.ages)
 
     def calculateStd(self):
         sumOfValues = 0
         for element in self.ages:
-            sumOfValues += math.pow((int(element) - self.mean), 2)
+            sumOfValues += math.pow((element - self.mean), 2)
         self.std = math.sqrt(sumOfValues / len(self.ages))
 
     def calculateLikelihhod(self, value):
@@ -82,7 +82,7 @@ def createConfusionMatrice(filename,class1,class2,class3):
                 elif (row[1] == "3"):
                     matrix[2][2] += 1
 
-        print("The matrix for your data -> ", matrix)
+        print("The matrix for your data -> ", *matrix,sep="\n")
 
 def createRiskMatrice(filename,class1,class2,class3):
     matrix = [
@@ -138,7 +138,7 @@ def createRiskMatrice(filename,class1,class2,class3):
                 elif (row[1] == "3"):
                     matrix[3][2] += 1
 
-    print("The matrix for your data -> ", matrix)
+    print("The matrix for your data -> ", *matrix,sep="\n")
 
 def createGraph(filename):
     class1 = Class("1")
@@ -174,7 +174,7 @@ def createGraph(filename):
     class3.calculateProps(lineCount)
 
     #createConfusionMatrice(filename,class1,class2,class3)
-    #createRiskMatrice(filename,class1,class2,class3)
+    createRiskMatrice(filename,class1,class2,class3)
 
     for var in ages:
         likelihood1 = class1.calculateLikelihhod(var)
@@ -207,4 +207,4 @@ def createGraph(filename):
     plt.show()
 
 #createGraph("training.csv")
-#createGraph("testing.csv")
+createGraph("testing.csv")
