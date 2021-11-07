@@ -2,6 +2,11 @@ import csv
 import math
 import matplotlib.pyplot as plt
 
+class tempPair:
+    def __init__(self,name,value):
+        self.value = value
+        self.name = name
+
 class FlowerPair:
     def __init__(self,value,guessName,realName):
         self.value = value
@@ -9,7 +14,7 @@ class FlowerPair:
         self.realName = realName
 
     def __repr__(self):
-        return repr((self.value, self.name))
+        return repr(self.value)
 
 class Flower:
     def __init__(self, name):
@@ -35,17 +40,38 @@ class Flower:
     def calculateMeanOclid(self,x,y):
         return math.sqrt(math.pow(self.mean[0][0]-x,2)+math.pow(self.mean[0][1]-y,2))
 
-
 def calculateMeanOclid(x1,y1,x2,y2):
     return math.sqrt(math.pow(x1-x2,2)+math.pow(y1-y2,2))
 
+def calculateResultValues(filename):
+    row = -1
+    resultValues = []
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        isHeader = True
+        for testRow in csv_reader:
+            if isHeader:
+                isHeader = False
+                continue
+            row+=1
+            resultValues.append([])
+            with open("training.csv") as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter=',')
+                isHeader = True
+                for trainRow in csv_reader:
+                    if isHeader:
+                        isHeader = False
+                        continue
+                    tempFlower = FlowerPair(calculateMeanOclid(float(testRow[0]),float(testRow[1]),float(trainRow[0]),float(trainRow[1])),trainRow[2],testRow[2])
+                    resultValues[row].append(tempFlower)
+                resultValues[row] = (sorted(resultValues[row], key=lambda flowerPair: flowerPair.value))
+    return resultValues
 
 class1 = Flower("Iris-setosa")
 class2 = Flower("Iris-versicolor")
 class3 = Flower("Iris-virginica")
 
-
-def nearestMeanFinder():
+def nearestMeanFinder(filename):
     matrix = [[0, 0, 0], [0, 0, 0],[0, 0, 0]]
 
     class1 = Flower("Iris-setosa")
@@ -82,7 +108,7 @@ def nearestMeanFinder():
         plt.legend([class1.name, "Mean " + class1.name, class2.name, "Mean " + class2.name, class3.name, "Mean " + class3.name])
         plt.show()
 
-    with open("testing.csv") as csv_file:
+    with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         isHeader = True
         for row in csv_reader:
@@ -119,60 +145,27 @@ def nearestMeanFinder():
 
         print("The matrix for your data -> ", *matrix, sep="\n")
 
-def kNearestNeighbor():
-    matrixforK1 = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    matrixforK3 = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    matrixforK5 = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    matrixCount = matrixforK1, matrixforK3, matrixforK5
-    resultValues = []
-    resultNames = []
-    row = -1
+def kNearestNeighborA(filename):
+    guessName = ""
+    resultValues = calculateResultValues(filename)
 
-    with open("testing.csv") as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        isHeader = True
-        for testRow in csv_reader:
-            if isHeader:
-                isHeader = False
-                continue
-            row+=1
-            resultValues.append([])
-            resultNames.append([])
-            with open("training.csv") as csv_file:
-                csv_reader = csv.reader(csv_file, delimiter=',')
-                isHeader = True
-                for trainRow in csv_reader:
-                    if isHeader:
-                        isHeader = False
-                        continue
-                    tempFlower = FlowerPair(calculateMeanOclid(float(testRow[0]),float(testRow[1]),float(trainRow[0]),float(trainRow[1])),trainRow[2],testRow[2])
-                    resultValues[row].append(tempFlower)
-                resultValues[row] = (sorted(resultValues[row], key=lambda flowerPair: flowerPair.value))
-
-
-        k = 1
-        row = 0
-        selectedValue = 0
-
-
-
-        for matrix in matrixCount:
-            if k == 1:
+    for i in range(1,6,2):
+        matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        for row in range(len(resultValues)):
+            realName = resultValues[row][0].realName
+            if i == 1:
                 guessName = resultValues[row][0].guessName
-                selectedValue = resultValues[row][0].value
-                realName = resultValues[row][0].realName
-            elif k == 3:
-                nameCount = 1
-                selectedName = resultValues[row][0].name
-                for i in range(0,k):
-                    if(resultValues[row][i].name == selectedName):
-                        nameCount += 1
-
-
-
-            elif k == 5:
-                print(5)
-
+            elif i == 3 or i == 5:
+                classCount = tempPair("Iris-setosa",0),tempPair("Iris-versicolor",0),tempPair("Iris-virginica",0)
+                for k in range(0,i):
+                    for j in classCount:
+                        if(j.name == resultValues[row][k].guessName):
+                            j.value += 1
+                maxTempPair = classCount[0]
+                for element in classCount:
+                    if(maxTempPair.value < element.value):
+                        maxTempPair = element
+                guessName = maxTempPair.name
 
             if (guessName == class1.name):
                 if (realName == class1.name):
@@ -195,11 +188,47 @@ def kNearestNeighbor():
                     matrix[1][2] += 1
                 elif (realName == class3.name):
                     matrix[2][2] += 1
+        print("The matrix for your " , i , *matrix, sep="\n")
 
+def kNearestNeighborB(filename):
+    resultValues = calculateResultValues(filename)
+    plotOfX = list()
 
+    for k in range(1,10,2):
+        accuracyOfGuess = list()
+        for row in range(len(resultValues)):
+            if k == 1:
+                if resultValues[row][0].guessName == resultValues[row][0].realName:
+                    accuracyOfGuess.append(1)
+                else:
+                    accuracyOfGuess.append(0)
+            elif k == 3 or k == 5 or k == 7 or k == 9:
+                classCount = tempPair("Iris-setosa", 0), tempPair("Iris-versicolor", 0), tempPair("Iris-virginica", 0)
+                for i in range(0, k):
+                    for j in classCount:
+                        if (j.name == resultValues[row][i].guessName):
+                            j.value += 1
+                maxTempPair = classCount[0]
+                for element in classCount:
+                    if (maxTempPair.value < element.value):
+                        maxTempPair = element
+                if maxTempPair.name == resultValues[row][0].realName:
+                    accuracyOfGuess.append(1)
+                else:
+                    accuracyOfGuess.append(0)
+        accuracy = 0.0
+        for i in accuracyOfGuess:
+            if i == 1:
+                accuracy += 1
+        accuracy /= len(accuracyOfGuess)
+        plotOfX.append(accuracy)
 
+    plt.plot([1,3,5,7,9], plotOfX, color='r', marker="x")
+    plt.xlabel("k")
+    plt.ylabel("Accuracy")
+    plt.ylim(0.9,1)
+    plt.show()
 
-
-#nearestMeanFinder()
-kNearestNeighbor()
-
+#nearestMeanFinder("training.csv")
+kNearestNeighborA("training.csv")
+#kNearestNeighborB("testing.csv")
